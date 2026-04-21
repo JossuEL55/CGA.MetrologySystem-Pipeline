@@ -11,7 +11,7 @@ def runTests() {
 }
 
 def runQualityCheck() {
-    echo 'Pending static analysis / code quality'
+    bat 'dotnet format CGA.MetrologySystem.slnx --verify-no-changes'
 }
 
 pipeline {
