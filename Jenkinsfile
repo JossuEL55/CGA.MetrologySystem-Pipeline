@@ -21,10 +21,10 @@ pipeline {
         }
 
         stage('Test') {
-            steps {
-                echo 'Pending unit tests without database dependency'
+    steps {
+        bat 'dotnet test CGA.MetrologySystem.slnx --no-build --configuration Release'
             }
-        }
+        }  
 
         stage('Quality') {
             steps {
