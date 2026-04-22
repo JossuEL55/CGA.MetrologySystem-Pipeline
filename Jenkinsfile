@@ -1,19 +1,3 @@
-def restoreSolution() {
-    bat 'dotnet restore CGA.MetrologySystem.slnx'
-}
-
-def buildSolution() {
-    bat 'dotnet build CGA.MetrologySystem.slnx --configuration Release --no-restore'
-}
-
-def runTests() {
-    bat 'dotnet test CGA.MetrologySystem.slnx --no-build --configuration Release'
-}
-
-def runQualityCheck() {
-    bat 'dotnet format CGA.MetrologySystem.slnx --verify-no-changes'
-}
-
 pipeline {
     agent any
 
@@ -26,17 +10,13 @@ pipeline {
 
         stage('Restore') {
             steps {
-                script {
-                    restoreSolution()
-                }
+                bat 'scripts/restore.bat'
             }
         }
 
         stage('Build') {
             steps {
-                script {
-                    buildSolution()
-                }
+                bat 'scripts/build.bat'
             }
         }
 
@@ -44,17 +24,13 @@ pipeline {
             parallel {
                 stage('Test') {
                     steps {
-                        script {
-                            runTests()
-                        }
+                        bat 'scripts/test.bat'
                     }
                 }
 
                 stage('Quality') {
                     steps {
-                        script {
-                            runQualityCheck()
-                        }
+                        bat 'scripts/quality.bat'
                     }
                 }
             }
