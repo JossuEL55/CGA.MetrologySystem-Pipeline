@@ -22,8 +22,14 @@ commands:
   test_project:
     steps:
       - run:
-          name: Ejecutar pruebas automáticas
-          command: dotnet test CGA.MetrologySystem/CGA.MetrologySystem.csproj --configuration Release --no-restore --logger "trx;LogFileName=test-results.trx"
+          name: Ejecutar pruebas
+          command: dotnet test CGA.MetrologySystem/CGA.MetrologySystem.csproj --configuration Release --no-restore
+
+  quality_check:
+    steps:
+      - run:
+          name: Verificar calidad de código
+          command: dotnet format CGA.MetrologySystem/CGA.MetrologySystem.csproj --verify-no-changes
 
 jobs:
   restore:
@@ -46,8 +52,13 @@ jobs:
       - checkout
       - restore_project
       - test_project
-      - store_test_results:
-          path: TestResults
+
+  quality:
+    executor: dotnet_executor
+    steps:
+      - checkout
+      - restore_project
+      - quality_check
 
 workflows:
   cga_circleci_pipeline:
@@ -62,18 +73,9 @@ workflows:
       - build:
           requires:
             - restore
-          filters:
-            branches:
-              only:
-                - main
-                - develop
-                - /feature\/.*/
       - test_parallel:
           requires:
             - build
-          filters:
-            branches:
-              only:
-                - main
-                - develop
-                - /feature\/.*/
+      - quality:
+          requires:
+            - build
