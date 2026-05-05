@@ -19,6 +19,12 @@ commands:
           name: Compilar proyecto
           command: dotnet build CGA.MetrologySystem/CGA.MetrologySystem.csproj --configuration Release --no-restore
 
+  test_project:
+    steps:
+      - run:
+          name: Ejecutar pruebas automáticas
+          command: dotnet test CGA.MetrologySystem/CGA.MetrologySystem.csproj --configuration Release --no-restore --logger "trx;LogFileName=test-results.trx"
+
 jobs:
   restore:
     executor: dotnet_executor
@@ -33,6 +39,16 @@ jobs:
       - restore_project
       - build_project
 
+  test_parallel:
+    executor: dotnet_executor
+    parallelism: 2
+    steps:
+      - checkout
+      - restore_project
+      - test_project
+      - store_test_results:
+          path: TestResults
+
 workflows:
   cga_circleci_pipeline:
     jobs:
@@ -46,6 +62,15 @@ workflows:
       - build:
           requires:
             - restore
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+                - /feature\/.*/
+      - test_parallel:
+          requires:
+            - build
           filters:
             branches:
               only:
