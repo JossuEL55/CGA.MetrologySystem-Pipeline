@@ -6,22 +6,46 @@ executors:
       - image: mcr.microsoft.com/dotnet/sdk:10.0
     working_directory: ~/project
 
+commands:
+  restore_project:
+    steps:
+      - run:
+          name: Restaurar dependencias
+          command: dotnet restore CGA.MetrologySystem/CGA.MetrologySystem.csproj
+
+  build_project:
+    steps:
+      - run:
+          name: Compilar proyecto
+          command: dotnet build CGA.MetrologySystem/CGA.MetrologySystem.csproj --configuration Release --no-restore
+
 jobs:
+  restore:
+    executor: dotnet_executor
+    steps:
+      - checkout
+      - restore_project
+
   build:
     executor: dotnet_executor
     steps:
       - checkout
-      - run:
-          name: Restaurar dependencias
-          command: dotnet restore CGA.MetrologySystem/CGA.MetrologySystem.csproj
-      - run:
-          name: Compilar proyecto
-          command: dotnet build CGA.MetrologySystem/CGA.MetrologySystem.csproj --configuration Release
+      - restore_project
+      - build_project
 
 workflows:
   cga_circleci_pipeline:
     jobs:
+      - restore:
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+                - /feature\/.*/
       - build:
+          requires:
+            - restore
           filters:
             branches:
               only:
