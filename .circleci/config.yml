@@ -13,10 +13,10 @@ jobs:
       - checkout
       - run:
           name: Restaurar dependencias
-          command: dotnet restore CGA.MetrologySystem.slnx
+          command: dotnet restore CGA.MetrologySystem/CGA.MetrologySystem.csproj
       - run:
-          name: Compilar solución
-          command: dotnet build CGA.MetrologySystem.slnx --configuration Release
+          name: Compilar proyecto
+          command: dotnet build CGA.MetrologySystem/CGA.MetrologySystem.csproj --configuration Release
 
 workflows:
   cga_circleci_pipeline:
