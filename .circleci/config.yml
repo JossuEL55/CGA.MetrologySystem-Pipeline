@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@4.13.3
+
 executors:
   dotnet_executor:
     docker:
@@ -22,7 +25,7 @@ commands:
   test_project:
     steps:
       - run:
-          name: Ejecutar pruebas
+          name: Ejecutar pruebas automáticas
           command: dotnet test CGA.MetrologySystem/CGA.MetrologySystem.csproj --configuration Release --no-restore
 
   quality_check:
@@ -60,6 +63,17 @@ jobs:
       - restore_project
       - quality_check
 
+  notify:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - slack/notify:
+          event: pass
+          template: basic_success_1
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+
 workflows:
   cga_circleci_pipeline:
     jobs:
@@ -73,9 +87,37 @@ workflows:
       - build:
           requires:
             - restore
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+                - /feature\/.*/
       - test_parallel:
           requires:
             - build
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+                - /feature\/.*/
       - quality:
           requires:
             - build
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+                - /feature\/.*/
+      - notify:
+          requires:
+            - test_parallel
+            - quality
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+                - /feature\/.*/
