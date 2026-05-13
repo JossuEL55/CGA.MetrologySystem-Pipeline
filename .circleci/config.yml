@@ -76,23 +76,96 @@ jobs:
 workflows:
   cga_circleci_pipeline:
     jobs:
+      # =========================
+      # FEATURE BRANCHES
+      # feature/* -> restore + build + test
+      # =========================
       - restore:
+          name: restore_feature
           filters:
             branches:
-              only:
-                - main
-                - develop
-                - /feature\/.*/
+              only: /feature\/.*/
       - build:
+          name: build_feature
           requires:
-            - restore
+            - restore_feature
+          filters:
+            branches:
+              only: /feature\/.*/
       - test_parallel:
+          name: test_feature
           requires:
-            - build
+            - build_feature
+          filters:
+            branches:
+              only: /feature\/.*/
+
+      # =========================
+      # DEVELOP
+      # develop -> restore + build + test + quality
+      # =========================
+      - restore:
+          name: restore_develop
+          filters:
+            branches:
+              only: develop
+      - build:
+          name: build_develop
+          requires:
+            - restore_develop
+          filters:
+            branches:
+              only: develop
+      - test_parallel:
+          name: test_develop
+          requires:
+            - build_develop
+          filters:
+            branches:
+              only: develop
       - quality:
+          name: quality_develop
           requires:
-            - build
+            - build_develop
+          filters:
+            branches:
+              only: develop
+
+      # =========================
+      # MAIN
+      # main -> restore + build + test + quality + notify
+      # =========================
+      - restore:
+          name: restore_main
+          filters:
+            branches:
+              only: main
+      - build:
+          name: build_main
+          requires:
+            - restore_main
+          filters:
+            branches:
+              only: main
+      - test_parallel:
+          name: test_main
+          requires:
+            - build_main
+          filters:
+            branches:
+              only: main
+      - quality:
+          name: quality_main
+          requires:
+            - build_main
+          filters:
+            branches:
+              only: main
       - notify:
+          name: notify_main
           requires:
-            - test_parallel
-            - quality
+            - test_main
+            - quality_main
+          filters:
+            branches:
+              only: main
