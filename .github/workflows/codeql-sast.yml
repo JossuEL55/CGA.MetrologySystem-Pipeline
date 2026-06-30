@@ -1,0 +1,61 @@
+name: CodeQL SAST
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+permissions:
+  actions: read
+  contents: read
+  packages: read
+  security-events: write
+
+jobs:
+  codeql-sast:
+    name: Build and CodeQL analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      # Descarga el codigo del repositorio.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Instala el SDK de .NET requerido por la solucion.
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # Restaura las dependencias de la solucion existente.
+      - name: Restore dependencies
+        run: dotnet restore CGA.MetrologySystem.slnx
+
+      # Inicializa CodeQL para analizar codigo C#.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: csharp
+          build-mode: manual
+
+      # Compila la solucion para que CodeQL capture el flujo de build.
+      - name: Build solution
+        run: dotnet build CGA.MetrologySystem.slnx --configuration Release --no-restore
+
+      # Ejecuta el analisis SAST y genera el reporte SARIF.
+      - name: Perform CodeQL analysis
+        id: analyze
+        uses: github/codeql-action/analyze@v4
+        with:
+          output: codeql-results
+
+      # Publica el reporte SARIF como artefacto del workflow.
+      - name: Upload SARIF report
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-sarif-report
+          path: ${{ steps.analyze.outputs.sarif-output }}
+          if-no-files-found: error
